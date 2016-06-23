@@ -91,7 +91,7 @@ eval {
     }
     else # display a view
     {
-        unless ($view =~ /^(?:config|help|app|building|datacenter|device|deviceApp|domain|hardware|hypervisor|network|power|org|os|rack|report|role|room|row|service|system)$/)
+        unless ($view =~ /^(?:config|help|app|building|chefrole|datacenter|device|deviceApp|domain|environment|hardware|hypervisor|network|power|org|os|rack|report|role|room|row|service|system)$/)
         {
             die "RMERR: '$view' is not a valid view. Did you type the URL manually? Note that view names are singular, for example device NOT devices.";
         }
@@ -232,6 +232,8 @@ eval {
                 my $selectedDomain        = $cgi->lastCreatedId;
                 my $selectedDatacenter    = $cgi->lastCreatedId;
                 my $selectedHypervisor    = $cgi->lastCreatedId;
+                my $selectedChefrole      = $cgi->lastCreatedId;
+                my $selectedEnvironment   = $cgi->lastCreatedId;
 
                 if (($viewType =~ /^edit/) || ($viewType =~ /^single/) || ($viewType =~ /^create/))
                 {
@@ -267,6 +269,8 @@ eval {
                         $selectedDomain        = $$device{'domain'}                   if (!$selectedDomain);
                         $selectedDatacenter    = $$device{'datacenter'}               if (!$selectedDatacenter);
                         $selectedHypervisor    = $$device{'hypervisor'}               if (!$selectedHypervisor);
+                        $selectedChefrole      = $$device{'chefrole'}                 if (!$selectedChefrole);
+                        $selectedEnvironment   = $$device{'environment'}              if (!$selectedEnvironment);
                     }
 
                     # clear values unique to a device if we're copying an existing device
@@ -300,6 +304,8 @@ eval {
                     $template->param('rack_pos'                => $cgi->selectProperty('position'));
                     $template->param('datacenterlist'          => $cgi->selectItem($backend->simpleList('datacenter', 1), $selectedDatacenter));
                     $template->param('hypervisorlist'          => $cgi->selectItem($backend->simpleList('hypervisor', 1), $selectedHypervisor));
+                    $template->param('chefrolelist'            => $cgi->selectItem($backend->simpleList('chefrole', 1), $selectedChefrole));
+                    $template->param('environmentlist'         => $cgi->selectItem($backend->simpleList('environment', 1), $selectedEnvironment));
                 }
             }
         }
@@ -730,6 +736,71 @@ eval {
                     $$hypervisor{'notes'} = formatNotes($$hypervisor{'notes'});
                 }
                 $template->param($hypervisor);
+            }
+        }
+
+
+
+        elsif ($view eq 'chefrole')
+        {
+            if ($viewType =~ /^default/)
+            {
+                my $chefRoles = $backend->chefroleList($orderBy);
+
+                my $totalChefroleCount  = $backend->itemCount('chefrole');
+                my $listedChefroleCount = @$chefRoles;
+                $template->param('total_chefrole_count'  => $totalChefroleCount);
+                $template->param('listed_chefrole_count' => $listedChefroleCount);
+                $template->param('all_chefrole_listed'   => ($totalChefroleCount == $listedChefroleCount));
+
+                for my $s (@$chefRoles)
+                {
+                    $$s{'notes'}          = formatNotes($$s{'notes'}, 1);
+                    $$s{'notes_short'}    = shortStr($$s{'notes'});
+                    $$s{'descript_short'} = shortStr($$s{'descript'});
+                }
+                $template->param('chefroles' => $chefRoles);
+            }
+            elsif (($viewType =~ /^edit/) || ($viewType =~ /^single/))
+            {
+                my $chefrole = $backend->chefrole($id);
+                if ($viewType =~ /^single/)
+                {
+                    $$chefrole{'notes'} = formatNotes($$chefrole{'notes'});
+                }
+                $template->param($chefrole);
+            }
+        }
+
+
+        elsif ($view eq 'environment')
+        {
+            if ($viewType =~ /^default/)
+            {
+                my $environMents = $backend->environmentList($orderBy);
+
+                my $totalEnvironmentCount  = $backend->itemCount('environment');
+                my $listedEnvironmentCount = @$environMents;
+                $template->param('total_environment_count'  => $totalEnvironmentCount);
+                $template->param('listed_environment_count' => $listedEnvironmentCount);
+                $template->param('all_environment_listed'   => ($totalEnvironmentCount == $listedEnvironmentCount));
+
+                for my $s (@$environMents)
+                {
+                    $$s{'notes'}          = formatNotes($$s{'notes'}, 1);
+                    $$s{'notes_short'}    = shortStr($$s{'notes'});
+                    $$s{'descript_short'} = shortStr($$s{'descript'});
+                }
+                $template->param('environments' => $environMents);
+            }
+            elsif (($viewType =~ /^edit/) || ($viewType =~ /^single/))
+            {
+                my $environment = $backend->environment($id);
+                if ($viewType =~ /^single/)
+                {
+                    $$environment{'notes'} = formatNotes($$environment{'notes'});
+                }
+                $template->param($environment);
             }
         }
 

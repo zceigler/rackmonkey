@@ -217,9 +217,9 @@ sub itemCount
 sub performAct
 {
     my ($self, $type, $act, $updateUser, $record) = @_;
-    unless ($type =~ /^(?:app|building|datacenter|device|deviceApp|domain|hardware|hypervisor|org|os|rack|report|role|room|row|service)$/)
+    unless ($type =~ /^(?:app|building|chefrole|datacenter|device|deviceApp|domain|environment|hardware|hypervisor|org|os|rack|report|role|room|row|service)$/)
     {
-        croak "RM_ENGINE: '$type' is not a recognised type. Recognized types are app, building, data center, device, deviceApp, domain, hardware, org, os, rack, report, role, room, row and service";
+        croak "RM_ENGINE: '$type' is not a recognised type. Recognized types are app, building, data center, device, deviceApp, domain, environment, hardware, org, os, rack, report, role, room, row and service";
     }
     my $actStr  = $act;
     my $typeStr = $type;
@@ -586,8 +586,12 @@ sub device
             datacenter.name                 AS datacenter_name,
             datacenter.meta_default_data    AS datacenter_meta_default_data,
             hypervisor.name                 AS hypervisor_name,
-            hypervisor.meta_default_data    AS hypervisor_meta_default_data
-		FROM device, rack, row, room, building, hardware, org hardware_manufacturer, role, os, org customer, service, domain, datacenter, hypervisor 
+            hypervisor.meta_default_data    AS hypervisor_meta_default_data,
+            chefrole.name                 AS chefrole_name,
+            chefrole.meta_default_data    AS chefrole_meta_default_data,
+            environment.name                 AS environment_name,
+            environment.meta_default_data    AS environment_meta_default_data
+		FROM device, rack, row, room, building, hardware, org hardware_manufacturer, role, os, org customer, service, domain, datacenter, hypervisor, chefrole, environment
 		WHERE 
 			device.rack = rack.id AND 
 			rack.row = row.id AND
@@ -602,6 +606,8 @@ sub device
 			device.service = service.id AND
             device.datacenter = datacenter.id AND
             device.hypervisor = hypervisor.id AND
+            device.chefrole = chefrole.id AND
+            device.environment = environment.id AND
 			device.id = ?
 	!
     );
@@ -662,8 +668,10 @@ sub deviceList
 			customer.name 				AS customer_name,
 			service.name 				AS service_name,
 			domain.name					AS domain_name,
-			domain.meta_default_data	AS domain_meta_default_data
-		FROM device, rack, row, room, building, hardware, org hardware_manufacturer, role, os, org customer, service, domain 
+			domain.meta_default_data	AS domain_meta_default_data,
+            chefrole.name               AS chefrole_name,
+            environment.name            AS environment_name
+		FROM device, rack, row, room, building, hardware, org hardware_manufacturer, role, os, org customer, service, domain, chefrole, environment
 		WHERE 
 			device.meta_default_data = 0 AND
 			device.rack = rack.id AND 
@@ -676,7 +684,9 @@ sub deviceList
 			device.os = os.id AND
 			device.customer = customer.id AND
 			device.domain = domain.id AND
-			device.service = service.id
+			device.service = service.id AND
+            device.chefrole = chefrole.id AND
+            device.environment = environment.id
 			$filterBy
 			$deviceSearch
 		ORDER BY $orderBy
@@ -819,13 +829,13 @@ sub updateDevice
 
     if ($$record{'id'})
     {
-        $sth = $self->dbh->prepare(qq!UPDATE device SET name = ?, domain = ?, rack = ?, rack_pos = ?, hardware = ?, datacenter = ?, hypervisor = ?, ip_address = ?, serial_no = ?, asset_no = ?, purchased = ?, os = ?, os_version = ?, os_licence_key = ?, customer = ?, service = ?, role = ?, in_service = ?, notes = ?, meta_update_time = ?, meta_update_user = ? WHERE id = ?!);
+        $sth = $self->dbh->prepare(qq!UPDATE device SET name = ?, domain = ?, rack = ?, rack_pos = ?, hardware = ?, datacenter = ?, hypervisor = ?, chefrole = ?, environment = ?, ip_address = ?, serial_no = ?, asset_no = ?, purchased = ?, os = ?, os_version = ?, os_licence_key = ?, customer = ?, service = ?, role = ?, in_service = ?, notes = ?, meta_update_time = ?, meta_update_user = ? WHERE id = ?!);
         my $ret = $sth->execute($self->_validateDeviceInput($record), $updateTime, $updateUser, $$record{'id'});
         croak "RM_ENGINE: Update failed. This device may have been removed before the update occured." if ($ret eq '0E0');
     }
     else
     {
-        $sth = $self->dbh->prepare(qq!INSERT INTO device (name, domain, rack, rack_pos, hardware, datacenter, hypervisor, ip_address, serial_no, asset_no, purchased, os, os_version, os_licence_key, customer, service, role, in_service, notes, meta_update_time, meta_update_user) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)!);
+        $sth = $self->dbh->prepare(qq!INSERT INTO device (name, domain, rack, rack_pos, hardware, datacenter, hypervisor, chefrole, environment, ip_address, serial_no, asset_no, purchased, os, os_version, os_licence_key, customer, service, role, in_service, notes, meta_update_time, meta_update_user) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)!);
         $sth->execute($self->_validateDeviceInput($record), $updateTime, $updateUser);
         $newId = $self->_lastInsertId('device');
     }
@@ -933,7 +943,7 @@ sub _validateDeviceInput
         $$record{'os_version'} = '';
     }
 
-    return ($$record{'name'}, $$record{'domain'}, $$record{'rack'}, $$record{'rack_pos'}, $$record{'hardware_model'}, $$record{'datacenter'}, $$record{'hypervisor'}, $$record{'ip_address'}, $$record{'serial_no'}, $$record{'asset_no'}, $$record{'purchased'}, $$record{'os'}, $$record{'os_version'}, $$record{'os_licence_key'}, $$record{'customer'}, $$record{'service'}, $$record{'role'}, $$record{'in_service'}, $$record{'notes'});
+    return ($$record{'name'}, $$record{'domain'}, $$record{'rack'}, $$record{'rack_pos'}, $$record{'hardware_model'}, $$record{'datacenter'}, $$record{'hypervisor'}, $$record{'chefrole'}, $$record{'environment'}, $$record{'ip_address'}, $$record{'serial_no'}, $$record{'asset_no'}, $$record{'purchased'}, $$record{'os'}, $$record{'os_version'}, $$record{'os_licence_key'}, $$record{'customer'}, $$record{'service'}, $$record{'role'}, $$record{'in_service'}, $$record{'notes'});
 }
 
 sub totalSizeDevice
@@ -2679,6 +2689,170 @@ sub _validateHypervisorUpdate
 {
     my ($self, $record) = @_;
     croak "RM_ENGINE: You must specify a name for the hypervisor." unless (length($$record{'name'}) > 1);
+    croak "RM_ENGINE: Names must be less than " . $self->getConf('maxstring') . " characters." unless (length($$record{'name'}) <= $self->getConf('maxstring'));
+    croak "RM_ENGINE: Descriptions cannot exceed " . $self->getConf('maxstring') . " characters."
+      unless (length($$record{'descript'}) <= $self->getConf('maxstring'));
+    croak "RM_ENGINE: Notes cannot exceed " . $self->getConf('maxnote') . " characters." unless (length($$record{'notes'}) <= $self->getConf('maxnote'));
+    return ($$record{'name'}, $$record{'descript'}, $$record{'notes'});
+}
+
+
+##############################################################################
+# Chef Role Methods                                                      #
+##############################################################################
+
+sub chefrole
+{
+    my ($self, $id) = @_;
+    my $sth = $self->dbh->prepare(
+        qq!
+        SELECT chefrole.* 
+        FROM chefrole 
+        WHERE id = ?
+    !
+    );
+    $sth->execute($id);
+    my $chefrole = $sth->fetchrow_hashref('NAME_lc');
+    croak "RM_ENGINE: No such chef role id." unless defined($$chefrole{'id'});
+    return $chefrole;
+}
+
+sub chefroleList
+{
+    my $self = shift;
+    my $orderBy = shift || '';
+    $orderBy = 'chefrole.name' unless $self->_checkOrderBy($orderBy);
+    my $sth = $self->dbh->prepare(
+        qq!
+        SELECT chefrole.* 
+        FROM chefrole 
+        WHERE chefrole.meta_default_data = 0
+        ORDER BY $orderBy
+    !
+    );
+    $sth->execute;
+    return $sth->fetchall_arrayref({});
+}
+
+sub updateChefrole
+{
+    my ($self, $updateTime, $updateUser, $record) = @_;
+    croak "RM_ENGINE: Unable to update chef role. No chef role specified." unless ($record);
+
+    my ($sth, $newId);
+
+    if ($$record{'id'})
+    {
+        $sth = $self->dbh->prepare(qq!UPDATE chefrole SET name = ?, descript = ?, notes = ?, meta_update_time = ?, meta_update_user = ? WHERE id = ?!);
+        my $ret = $sth->execute($self->_validateHypervisorUpdate($record), $updateTime, $updateUser, $$record{'id'});
+        croak "RM_ENGINE: Update failed. This chef role may have been removed before the update occured." if ($ret eq '0E0');
+    }
+    else
+    {
+        $sth = $self->dbh->prepare(qq!INSERT INTO chefrole (name, descript, notes, meta_update_time, meta_update_user) VALUES(?, ?, ?, ?, ?)!);
+        $sth->execute($self->_validateChefroleUpdate($record), $updateTime, $updateUser);
+        $newId = $self->_lastInsertId('chefrole');
+    }
+    return $newId || $$record{'id'};
+}
+
+sub deleteChefrole
+{
+    my ($self, $updateTime, $updateUser, $record) = @_;
+    my $deleteId = (ref $record eq 'HASH') ? $$record{'id'} : $record;
+    croak "RM_ENGINE: Delete failed. No chef role specified." unless ($deleteId);
+    my $sth = $self->dbh->prepare(qq!DELETE FROM chefrole WHERE id = ?!);
+    my $ret = $sth->execute($deleteId);
+    croak "RM_ENGINE: Delete failed. This chef role does not currently exist, it may have been removed already." if ($ret eq '0E0');
+    return $deleteId;
+}
+
+sub _validateChefroleUpdate
+{
+    my ($self, $record) = @_;
+    croak "RM_ENGINE: You must specify a name for the chefrole." unless (length($$record{'name'}) > 1);
+    croak "RM_ENGINE: Names must be less than " . $self->getConf('maxstring') . " characters." unless (length($$record{'name'}) <= $self->getConf('maxstring'));
+    croak "RM_ENGINE: Descriptions cannot exceed " . $self->getConf('maxstring') . " characters."
+      unless (length($$record{'descript'}) <= $self->getConf('maxstring'));
+    croak "RM_ENGINE: Notes cannot exceed " . $self->getConf('maxnote') . " characters." unless (length($$record{'notes'}) <= $self->getConf('maxnote'));
+    return ($$record{'name'}, $$record{'descript'}, $$record{'notes'});
+}
+
+
+##############################################################################
+# Environment Methods                                                      #
+##############################################################################
+
+sub environment
+{
+    my ($self, $id) = @_;
+    my $sth = $self->dbh->prepare(
+        qq!
+        SELECT environment.* 
+        FROM environment 
+        WHERE id = ?
+    !
+    );
+    $sth->execute($id);
+    my $environment = $sth->fetchrow_hashref('NAME_lc');
+    croak "RM_ENGINE: No such environment id." unless defined($$environment{'id'});
+    return $environment;
+}
+
+sub environmentList
+{
+    my $self = shift;
+    my $orderBy = shift || '';
+    $orderBy = 'environment.name' unless $self->_checkOrderBy($orderBy);
+    my $sth = $self->dbh->prepare(
+        qq!
+        SELECT environment.* 
+        FROM environment 
+        WHERE environment.meta_default_data = 0
+        ORDER BY $orderBy
+    !
+    );
+    $sth->execute;
+    return $sth->fetchall_arrayref({});
+}
+
+sub updateEnvironment
+{
+    my ($self, $updateTime, $updateUser, $record) = @_;
+    croak "RM_ENGINE: Unable to update environment. No environment specified." unless ($record);
+
+    my ($sth, $newId);
+
+    if ($$record{'id'})
+    {
+        $sth = $self->dbh->prepare(qq!UPDATE environment SET name = ?, descript = ?, notes = ?, meta_update_time = ?, meta_update_user = ? WHERE id = ?!);
+        my $ret = $sth->execute($self->_validateHypervisorUpdate($record), $updateTime, $updateUser, $$record{'id'});
+        croak "RM_ENGINE: Update failed. This environment may have been removed before the update occured." if ($ret eq '0E0');
+    }
+    else
+    {
+        $sth = $self->dbh->prepare(qq!INSERT INTO environment (name, descript, notes, meta_update_time, meta_update_user) VALUES(?, ?, ?, ?, ?)!);
+        $sth->execute($self->_validateChefroleUpdate($record), $updateTime, $updateUser);
+        $newId = $self->_lastInsertId('environment');
+    }
+    return $newId || $$record{'id'};
+}
+
+sub deleteEnvironment
+{
+    my ($self, $updateTime, $updateUser, $record) = @_;
+    my $deleteId = (ref $record eq 'HASH') ? $$record{'id'} : $record;
+    croak "RM_ENGINE: Delete failed. No environment role specified." unless ($deleteId);
+    my $sth = $self->dbh->prepare(qq!DELETE FROM environment WHERE id = ?!);
+    my $ret = $sth->execute($deleteId);
+    croak "RM_ENGINE: Delete failed. This environment does not currently exist, it may have been removed already." if ($ret eq '0E0');
+    return $deleteId;
+}
+
+sub _validateEnvironmentUpdate
+{
+    my ($self, $record) = @_;
+    croak "RM_ENGINE: You must specify a name for the environment." unless (length($$record{'name'}) > 1);
     croak "RM_ENGINE: Names must be less than " . $self->getConf('maxstring') . " characters." unless (length($$record{'name'}) <= $self->getConf('maxstring'));
     croak "RM_ENGINE: Descriptions cannot exceed " . $self->getConf('maxstring') . " characters."
       unless (length($$record{'descript'}) <= $self->getConf('maxstring'));
