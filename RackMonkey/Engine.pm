@@ -217,14 +217,14 @@ sub itemCount
 sub performAct
 {
     my ($self, $type, $act, $updateUser, $record) = @_;
-    unless ($type =~ /^(?:app|building|device|deviceApp|domain|hardware|org|os|rack|report|role|room|row|service)$/)
+    unless ($type =~ /^(?:app|building|datacenter|device|deviceApp|domain|hardware|hypervisor|org|os|rack|report|role|room|row|service)$/)
     {
-        croak "RM_ENGINE: '$type' is not a recognised type. Recognised types are app, building, device, deviceApp, domain, hardware, org, os, rack, report, role, room, row and service";
+        croak "RM_ENGINE: '$type' is not a recognised type. Recognized types are app, building, data center, device, deviceApp, domain, hardware, org, os, rack, report, role, room, row and service";
     }
     my $actStr  = $act;
     my $typeStr = $type;
     $act = 'update' if ($act eq 'insert');
-    croak "RM_ENGINE: '$act is not a recognised act. This error should not occur, did you manually type this URL?" unless $act =~ /^(?:update|delete)$/;
+    croak "RM_ENGINE: '$act is not a recognized act. This error should not occur, did you manually type this URL?" unless $act =~ /^(?:update|delete)$/;
 
     # check username for update is valid
     croak "RM_ENGINE: User update names must be less than " . $self->getConf('maxstring') . " characters."
@@ -582,8 +582,12 @@ sub device
 			service.name 				AS service_name,
 			service.meta_default_data	AS service_meta_default_data,
 			domain.name					AS domain_name,
-			domain.meta_default_data	AS domain_meta_default_data
-		FROM device, rack, row, room, building, hardware, org hardware_manufacturer, role, os, org customer, service, domain 
+			domain.meta_default_data	AS domain_meta_default_data,
+            datacenter.name                 AS datacenter_name,
+            datacenter.meta_default_data    AS datacenter_meta_default_data,
+            hypervisor.name                 AS hypervisor_name,
+            hypervisor.meta_default_data    AS hypervisor_meta_default_data
+		FROM device, rack, row, room, building, hardware, org hardware_manufacturer, role, os, org customer, service, domain, datacenter, hypervisor 
 		WHERE 
 			device.rack = rack.id AND 
 			rack.row = row.id AND
@@ -596,6 +600,8 @@ sub device
 			device.customer = customer.id AND
 			device.domain = domain.id AND
 			device.service = service.id AND
+            device.datacenter = datacenter.id AND
+            device.hypervisor = hypervisor.id AND
 			device.id = ?
 	!
     );
@@ -813,13 +819,13 @@ sub updateDevice
 
     if ($$record{'id'})
     {
-        $sth = $self->dbh->prepare(qq!UPDATE device SET name = ?, domain = ?, rack = ?, rack_pos = ?, hardware = ?, serial_no = ?, asset_no = ?, purchased = ?, os = ?, os_version = ?, os_licence_key = ?, customer = ?, service = ?, role = ?, in_service = ?, notes = ?, meta_update_time = ?, meta_update_user = ? WHERE id = ?!);
+        $sth = $self->dbh->prepare(qq!UPDATE device SET name = ?, domain = ?, rack = ?, rack_pos = ?, hardware = ?, datacenter = ?, hypervisor = ?, ip_address = ?, serial_no = ?, asset_no = ?, purchased = ?, os = ?, os_version = ?, os_licence_key = ?, customer = ?, service = ?, role = ?, in_service = ?, notes = ?, meta_update_time = ?, meta_update_user = ? WHERE id = ?!);
         my $ret = $sth->execute($self->_validateDeviceInput($record), $updateTime, $updateUser, $$record{'id'});
         croak "RM_ENGINE: Update failed. This device may have been removed before the update occured." if ($ret eq '0E0');
     }
     else
     {
-        $sth = $self->dbh->prepare(qq!INSERT INTO device (name, domain, rack, rack_pos, hardware, serial_no, asset_no, purchased, os, os_version, os_licence_key, customer, service, role, in_service, notes, meta_update_time, meta_update_user) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)!);
+        $sth = $self->dbh->prepare(qq!INSERT INTO device (name, domain, rack, rack_pos, hardware, datacenter, hypervisor, ip_address, serial_no, asset_no, purchased, os, os_version, os_licence_key, customer, service, role, in_service, notes, meta_update_time, meta_update_user) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)!);
         $sth->execute($self->_validateDeviceInput($record), $updateTime, $updateUser);
         $newId = $self->_lastInsertId('device');
     }
@@ -849,10 +855,10 @@ sub _validateDeviceInput
     $$record{'in_service'} = $$record{'in_service'} ? 1 : 0;
 
     # If role is 'none' (id=2) then always set in service to false - this is a magic number, should find way to remove this
-    $$record{'in_service'} = 0 if ($$record{'role'} == 2);
+    #$$record{'in_service'} = 0 if ($$record{'role'} == 2);
 
     # If location is meta_default then also set in service to false - this is a magic number, should find way to remove this
-    $$record{'in_service'} = 0 if ($$record{'rack'} <= 5);
+    #$$record{'in_service'} = 0 if ($$record{'rack'} <= 5);
 
     # Check strings are valid
     unless (length($$record{'serial_no'}) <= $self->getConf('maxstring'))
@@ -927,7 +933,7 @@ sub _validateDeviceInput
         $$record{'os_version'} = '';
     }
 
-    return ($$record{'name'}, $$record{'domain'}, $$record{'rack'}, $$record{'rack_pos'}, $$record{'hardware_model'}, $$record{'serial_no'}, $$record{'asset_no'}, $$record{'purchased'}, $$record{'os'}, $$record{'os_version'}, $$record{'os_licence_key'}, $$record{'customer'}, $$record{'service'}, $$record{'role'}, $$record{'in_service'}, $$record{'notes'});
+    return ($$record{'name'}, $$record{'domain'}, $$record{'rack'}, $$record{'rack_pos'}, $$record{'hardware_model'}, $$record{'datacenter'}, $$record{'hypervisor'}, $$record{'ip_address'}, $$record{'serial_no'}, $$record{'asset_no'}, $$record{'purchased'}, $$record{'os'}, $$record{'os_version'}, $$record{'os_licence_key'}, $$record{'customer'}, $$record{'service'}, $$record{'role'}, $$record{'in_service'}, $$record{'notes'});
 }
 
 sub totalSizeDevice
@@ -2510,6 +2516,169 @@ sub _validateServiceUpdate
 {
     my ($self, $record) = @_;
     croak "RM_ENGINE: You must specify a name for the service level." unless (length($$record{'name'}) > 1);
+    croak "RM_ENGINE: Names must be less than " . $self->getConf('maxstring') . " characters." unless (length($$record{'name'}) <= $self->getConf('maxstring'));
+    croak "RM_ENGINE: Descriptions cannot exceed " . $self->getConf('maxstring') . " characters."
+      unless (length($$record{'descript'}) <= $self->getConf('maxstring'));
+    croak "RM_ENGINE: Notes cannot exceed " . $self->getConf('maxnote') . " characters." unless (length($$record{'notes'}) <= $self->getConf('maxnote'));
+    return ($$record{'name'}, $$record{'descript'}, $$record{'notes'});
+}
+
+##############################################################################
+# Data Center Methods                                                      #
+##############################################################################
+
+sub datacenter
+{
+    my ($self, $id) = @_;
+    my $sth = $self->dbh->prepare(
+        qq!
+        SELECT datacenter.* 
+        FROM datacenter 
+        WHERE id = ?
+    !
+    );
+    $sth->execute($id);
+    my $datacenter = $sth->fetchrow_hashref('NAME_lc');
+    croak "RM_ENGINE: No such data center id." unless defined($$datacenter{'id'});
+    return $datacenter;
+}
+
+sub datacenterList
+{
+    my $self = shift;
+    my $orderBy = shift || '';
+    $orderBy = 'datacenter.name' unless $self->_checkOrderBy($orderBy);
+    my $sth = $self->dbh->prepare(
+        qq!
+        SELECT datacenter.* 
+        FROM datacenter 
+        WHERE datacenter.meta_default_data = 0
+        ORDER BY $orderBy
+    !
+    );
+    $sth->execute;
+    return $sth->fetchall_arrayref({});
+}
+
+sub updateDatacenter
+{
+    my ($self, $updateTime, $updateUser, $record) = @_;
+    croak "RM_ENGINE: Unable to update data center. No data center specified." unless ($record);
+
+    my ($sth, $newId);
+
+    if ($$record{'id'})
+    {
+        $sth = $self->dbh->prepare(qq!UPDATE datacenter SET name = ?, descript = ?, notes = ?, meta_update_time = ?, meta_update_user = ? WHERE id = ?!);
+        my $ret = $sth->execute($self->_validateDatacenterUpdate($record), $updateTime, $updateUser, $$record{'id'});
+        croak "RM_ENGINE: Update failed. This data center may have been removed before the update occured." if ($ret eq '0E0');
+    }
+    else
+    {
+        $sth = $self->dbh->prepare(qq!INSERT INTO datacenter (name, descript, notes, meta_update_time, meta_update_user) VALUES(?, ?, ?, ?, ?)!);
+        $sth->execute($self->_validateDatacenterUpdate($record), $updateTime, $updateUser);
+        $newId = $self->_lastInsertId('datacenter');
+    }
+    return $newId || $$record{'id'};
+}
+
+sub deleteDatacenter
+{
+    my ($self, $updateTime, $updateUser, $record) = @_;
+    my $deleteId = (ref $record eq 'HASH') ? $$record{'id'} : $record;
+    croak "RM_ENGINE: Delete failed. No data center specified." unless ($deleteId);
+    my $sth = $self->dbh->prepare(qq!DELETE FROM datacenter WHERE id = ?!);
+    my $ret = $sth->execute($deleteId);
+    croak "RM_ENGINE: Delete failed. This data center does not currently exist, it may have been removed already." if ($ret eq '0E0');
+    return $deleteId;
+}
+
+sub _validateDatacenterUpdate
+{
+    my ($self, $record) = @_;
+    croak "RM_ENGINE: You must specify a name for the data center." unless (length($$record{'name'}) > 1);
+    croak "RM_ENGINE: Names must be less than " . $self->getConf('maxstring') . " characters." unless (length($$record{'name'}) <= $self->getConf('maxstring'));
+    croak "RM_ENGINE: Descriptions cannot exceed " . $self->getConf('maxstring') . " characters."
+      unless (length($$record{'descript'}) <= $self->getConf('maxstring'));
+    croak "RM_ENGINE: Notes cannot exceed " . $self->getConf('maxnote') . " characters." unless (length($$record{'notes'}) <= $self->getConf('maxnote'));
+    return ($$record{'name'}, $$record{'descript'}, $$record{'notes'});
+}
+
+
+##############################################################################
+# Hypervisor Methods                                                      #
+##############################################################################
+
+sub hypervisor
+{
+    my ($self, $id) = @_;
+    my $sth = $self->dbh->prepare(
+        qq!
+        SELECT hypervisor.* 
+        FROM hypervisor 
+        WHERE id = ?
+    !
+    );
+    $sth->execute($id);
+    my $hypervisor = $sth->fetchrow_hashref('NAME_lc');
+    croak "RM_ENGINE: No such hypervisor id." unless defined($$hypervisor{'id'});
+    return $hypervisor;
+}
+
+sub hypervisorList
+{
+    my $self = shift;
+    my $orderBy = shift || '';
+    $orderBy = 'hypervisor.name' unless $self->_checkOrderBy($orderBy);
+    my $sth = $self->dbh->prepare(
+        qq!
+        SELECT hypervisor.* 
+        FROM hypervisor 
+        WHERE hypervisor.meta_default_data = 0
+        ORDER BY $orderBy
+    !
+    );
+    $sth->execute;
+    return $sth->fetchall_arrayref({});
+}
+
+sub updateHypervisor
+{
+    my ($self, $updateTime, $updateUser, $record) = @_;
+    croak "RM_ENGINE: Unable to update hypervisor. No hypervisor specified." unless ($record);
+
+    my ($sth, $newId);
+
+    if ($$record{'id'})
+    {
+        $sth = $self->dbh->prepare(qq!UPDATE hypervisor SET name = ?, descript = ?, notes = ?, meta_update_time = ?, meta_update_user = ? WHERE id = ?!);
+        my $ret = $sth->execute($self->_validateHypervisorUpdate($record), $updateTime, $updateUser, $$record{'id'});
+        croak "RM_ENGINE: Update failed. This hypervisor may have been removed before the update occured." if ($ret eq '0E0');
+    }
+    else
+    {
+        $sth = $self->dbh->prepare(qq!INSERT INTO hypervisor (name, descript, notes, meta_update_time, meta_update_user) VALUES(?, ?, ?, ?, ?)!);
+        $sth->execute($self->_validateHypervisorUpdate($record), $updateTime, $updateUser);
+        $newId = $self->_lastInsertId('hypervisor');
+    }
+    return $newId || $$record{'id'};
+}
+
+sub deleteHypervisor
+{
+    my ($self, $updateTime, $updateUser, $record) = @_;
+    my $deleteId = (ref $record eq 'HASH') ? $$record{'id'} : $record;
+    croak "RM_ENGINE: Delete failed. No hypervisor specified." unless ($deleteId);
+    my $sth = $self->dbh->prepare(qq!DELETE FROM hypervisor WHERE id = ?!);
+    my $ret = $sth->execute($deleteId);
+    croak "RM_ENGINE: Delete failed. This hypervisor does not currently exist, it may have been removed already." if ($ret eq '0E0');
+    return $deleteId;
+}
+
+sub _validateHypervisorUpdate
+{
+    my ($self, $record) = @_;
+    croak "RM_ENGINE: You must specify a name for the hypervisor." unless (length($$record{'name'}) > 1);
     croak "RM_ENGINE: Names must be less than " . $self->getConf('maxstring') . " characters." unless (length($$record{'name'}) <= $self->getConf('maxstring'));
     croak "RM_ENGINE: Descriptions cannot exceed " . $self->getConf('maxstring') . " characters."
       unless (length($$record{'descript'}) <= $self->getConf('maxstring'));

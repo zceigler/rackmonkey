@@ -91,7 +91,7 @@ eval {
     }
     else # display a view
     {
-        unless ($view =~ /^(?:config|help|app|building|device|deviceApp|domain|hardware|network|power|org|os|rack|report|role|room|row|service|system)$/)
+        unless ($view =~ /^(?:config|help|app|building|datacenter|device|deviceApp|domain|hardware|hypervisor|network|power|org|os|rack|report|role|room|row|service|system)$/)
         {
             die "RMERR: '$view' is not a valid view. Did you type the URL manually? Note that view names are singular, for example device NOT devices.";
         }
@@ -230,6 +230,8 @@ eval {
                 my $selectedService       = $cgi->lastCreatedId;
                 my $selectedRack          = $cgi->selectProperty('rack') || $cgi->lastCreatedId;
                 my $selectedDomain        = $cgi->lastCreatedId;
+                my $selectedDatacenter    = $cgi->lastCreatedId;
+                my $selectedHypervisor    = $cgi->lastCreatedId;
 
                 if (($viewType =~ /^edit/) || ($viewType =~ /^single/) || ($viewType =~ /^create/))
                 {
@@ -263,6 +265,8 @@ eval {
                         $selectedService       = $$device{'service'}                  if (!$selectedService);
                         $selectedRack          = $$device{'rack'}                     if (!$selectedRack);
                         $selectedDomain        = $$device{'domain'}                   if (!$selectedDomain);
+                        $selectedDatacenter    = $$device{'datacenter'}               if (!$selectedDatacenter);
+                        $selectedHypervisor    = $$device{'hypervisor'}               if (!$selectedHypervisor);
                     }
 
                     # clear values unique to a device if we're copying an existing device
@@ -275,6 +279,7 @@ eval {
                         $$device{'in_service'}      = 1;    # default is in service
                         $$device{'notes'}           = '';
                         $$device{'os_licence_key'}  = '';
+                        $$device{'ip_address'}  = '';
                     }
 
                     $template->param($device);
@@ -293,6 +298,8 @@ eval {
                     $template->param('racklist'                => $cgi->selectRack($backend->rackListBasic, $selectedRack));
                     $template->param('domainlist'              => $cgi->selectItem($backend->simpleList('domain', 1), $selectedDomain));
                     $template->param('rack_pos'                => $cgi->selectProperty('position'));
+                    $template->param('datacenterlist'          => $cgi->selectItem($backend->simpleList('datacenter', 1), $selectedDatacenter));
+                    $template->param('hypervisorlist'          => $cgi->selectItem($backend->simpleList('hypervisor', 1), $selectedHypervisor));
                 }
             }
         }
@@ -660,6 +667,74 @@ eval {
                 $template->param($service);
             }
         }
+
+
+        elsif ($view eq 'datacenter')
+        {
+            if ($viewType =~ /^default/)
+            {
+                my $dataCenters = $backend->datacenterList($orderBy);
+
+                my $totalDatacenterCount  = $backend->itemCount('datacenter');
+                my $listedDatacenterCount = @$dataCenters;
+                $template->param('total_datacenter_count'  => $totalDatacenterCount);
+                $template->param('listed_datacenter_count' => $listedDatacenterCount);
+                $template->param('all_datacenter_listed'   => ($totalDatacenterCount == $listedDatacenterCount));
+
+                for my $s (@$dataCenters)
+                {
+                    $$s{'notes'}          = formatNotes($$s{'notes'}, 1);
+                    $$s{'notes_short'}    = shortStr($$s{'notes'});
+                    $$s{'descript_short'} = shortStr($$s{'descript'});
+                }
+                $template->param('datacenters' => $dataCenters);
+            }
+            elsif (($viewType =~ /^edit/) || ($viewType =~ /^single/))
+            {
+                my $datacenter = $backend->datacenter($id);
+                if ($viewType =~ /^single/)
+                {
+                    $$datacenter{'notes'} = formatNotes($$datacenter{'notes'});
+                }
+                $template->param($datacenter);
+            }
+        }
+
+
+
+        elsif ($view eq 'hypervisor')
+        {
+            if ($viewType =~ /^default/)
+            {
+                my $hyperVisors = $backend->hypervisorList($orderBy);
+
+                my $totalHypervisorCount  = $backend->itemCount('hypervisor');
+                my $listedHypervisorCount = @$hyperVisors;
+                $template->param('total_hypervisor_count'  => $totalHypervisorCount);
+                $template->param('listed_hypervisor_count' => $listedHypervisorCount);
+                $template->param('all_hypervisor_listed'   => ($totalHypervisorCount == $listedHypervisorCount));
+
+                for my $s (@$hyperVisors)
+                {
+                    $$s{'notes'}          = formatNotes($$s{'notes'}, 1);
+                    $$s{'notes_short'}    = shortStr($$s{'notes'});
+                    $$s{'descript_short'} = shortStr($$s{'descript'});
+                }
+                $template->param('hypervisors' => $hyperVisors);
+            }
+            elsif (($viewType =~ /^edit/) || ($viewType =~ /^single/))
+            {
+                my $hypervisor = $backend->hypervisor($id);
+                if ($viewType =~ /^single/)
+                {
+                    $$hypervisor{'notes'} = formatNotes($$hypervisor{'notes'});
+                }
+                $template->param($hypervisor);
+            }
+        }
+
+
+
         else
         {
             die "RMERR: No such view. This error should not occur. Please report to developers.";
