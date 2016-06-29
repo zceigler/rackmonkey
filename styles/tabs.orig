@@ -12,7 +12,7 @@
 	position: relative;
 	height: 2.7em;
 	border-bottom: 1px solid black;
-	background: #FFF;
+	background: #DDD;
 }
 
 #navlogo
@@ -24,7 +24,7 @@
 
 #navbar ul 
 {
-	margin: 0 0 0 10.5em;
+	margin: 0 0 0 4.5em;
 	margin-right: 0;
 	padding: 0;
 	position: absolute;
@@ -76,26 +76,3 @@
 	background: #FFF7CD;
 	padding-bottom: 6px;
 }
-
-.search-bar {
-    float: right;
-    margin-right: 10%;
-    margin-top: -22px;
-}
-
-.search-bar > input {
-    border: 1px solid #dedede;
-    line-height: 1.75;
-    width: 260px;
-}
-
-.search-bar > button {
-    background: #fff none repeat scroll 0 0;
-    border: 1px solid #dedede;
-    font-weight: bold;
-}
-
-.search-bar > button:hover {
-    background: #dedede;
-}
-
