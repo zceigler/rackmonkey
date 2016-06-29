@@ -307,6 +307,25 @@ eval {
                     $template->param('chefrolelist'            => $cgi->selectItem($backend->simpleList('chefrole', 1), $selectedChefrole));
                     $template->param('environmentlist'         => $cgi->selectItem($backend->simpleList('environment', 1), $selectedEnvironment));
                 }
+                if (($viewType =~ /^bulk/))
+                {
+                    $template->param('selected_manufacturer'   => $selectedManufacturer);
+                    $template->param('selected_hardware_model' => $selectedHardwareModel);
+                    # manufacturerlist: run selectItem to prefix - on meta_default items, should be separate sub from selectItem
+                    $template->param('manufacturerlist'        => $cgi->selectItem($backend->manufacturerWithHardwareList, 0));
+                    $template->param('modelList'               => $backend->hardwareByManufacturer); # Todo: Need to add '-' prefix to meta default items
+                    $template->param('oslist'                  => $cgi->selectItem($backend->simpleList('os', 1), $selectedOs));
+                    $template->param('rolelist'                => $cgi->selectItem($backend->simpleList('role', 1), $selectedRole));
+                    $template->param('customerlist'            => $cgi->selectItem($backend->simpleList('customer', 1), $selectedCustomer));
+                    $template->param('servicelist'             => $cgi->selectItem($backend->simpleList('service', 1), $selectedService));
+                    $template->param('racklist'                => $cgi->selectRack($backend->rackListBasic, $selectedRack));
+                    $template->param('domainlist'              => $cgi->selectItem($backend->simpleList('domain', 1), $selectedDomain));
+                    $template->param('rack_pos'                => $cgi->selectProperty('position'));
+                    $template->param('datacenterlist'          => $cgi->selectItem($backend->simpleList('datacenter', 1), $selectedDatacenter));
+                    $template->param('hypervisorlist'          => $cgi->selectItem($backend->simpleList('hypervisor', 1), $selectedHypervisor));
+                    $template->param('chefrolelist'            => $cgi->selectItem($backend->simpleList('chefrole', 1), $selectedChefrole));
+                    $template->param('environmentlist'         => $cgi->selectItem($backend->simpleList('environment', 1), $selectedEnvironment));
+                }
             }
         }
         elsif ($view eq 'deviceApp')
