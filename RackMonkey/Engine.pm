@@ -631,7 +631,7 @@ sub deviceList
         $filterBy .= " AND $f=" . $$filters{"$f"};
     }
 
-    $deviceSearch = "AND ( lower(device.name) LIKE '%$deviceSearch%' OR lower(device.serial_no) LIKE '%$deviceSearch%' OR lower(device.asset_no) LIKE '%$deviceSearch%' )"
+    $deviceSearch = "AND ( lower(device.name) LIKE '%$deviceSearch%' OR lower(role.name) LIKE '%$deviceSearch%' OR lower(environment.name) LIKE '%$deviceSearch%' )"
       if ($deviceSearch);
     $orderBy = 'device.name' unless $self->_checkOrderBy($orderBy);
 
@@ -669,8 +669,8 @@ sub deviceList
 			service.name 				AS service_name,
 			domain.name					AS domain_name,
 			domain.meta_default_data	AS domain_meta_default_data,
-            chefrole.name               AS chefrole_name,
-            environment.name            AS environment_name
+	                chefrole.name               AS chefrole_name,
+	                environment.name            AS environment_name
 		FROM device, rack, row, room, building, hardware, org hardware_manufacturer, role, os, org customer, service, domain, chefrole, environment
 		WHERE 
 			device.meta_default_data = 0 AND
@@ -685,8 +685,8 @@ sub deviceList
 			device.customer = customer.id AND
 			device.domain = domain.id AND
 			device.service = service.id AND
-            device.chefrole = chefrole.id AND
-            device.environment = environment.id
+            		device.chefrole = chefrole.id AND
+	                device.environment = environment.id
 			$filterBy
 			$deviceSearch
 		ORDER BY $orderBy

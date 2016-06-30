@@ -64,7 +64,7 @@
 
 #navbar ul a.unselected 
 {
-	background: #FFFAE1;
+	background: #dedede;
 	border: 1px solid #AAA;
 	border-bottom: none;
 }
