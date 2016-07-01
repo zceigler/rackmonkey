@@ -75,9 +75,9 @@
 				<th><a title="Sort by role" href="<TMPL_VAR NAME=base_url>?view=device&amp;order_by=role.name&amp;<TMPL_VAR NAME=filter_string>">Role</a></th>
 				<th><a title="Sort by hardware type" href="<TMPL_VAR NAME=base_url>?view=device&amp;order_by=hardware.name&amp;<TMPL_VAR NAME=filter_string>">Hardware</a></th>
 				<th><a title="Sort by operating system" href="<TMPL_VAR NAME=base_url>?view=device&amp;order_by=os.name&amp;<TMPL_VAR NAME=filter_string>">Operating System</a></th>
-				<th><a title="Sort by chef role" href="<TMPL_VAR NAME=base_url>?view=device&amp;order_by=customer.name&amp;<TMPL_VAR NAME=filter_string>">Chef Role</a></th>
+				<th><a title="Sort by data center" href="<TMPL_VAR NAME=base_url>?view=device&amp;order_by=datacenter.name&amp;<TMPL_VAR NAME=filter_string>">Data Center</a></th>
 				<th><a title="Sort by IP address" href="<TMPL_VAR NAME=base_url>?view=device&amp;order_by=ip_address&amp;<TMPL_VAR NAME=filter_string>">IP Address</a></th>
-				<th><a title="Sort by notes" href="<TMPL_VAR NAME=base_url>?view=device&amp;order_by=device.notes&amp;<TMPL_VAR NAME=filter_string>">Notes</a></th>		
+				<th><a title="Sort by hypervisor" href="<TMPL_VAR NAME=base_url>?view=device&amp;order_by=hypervisor.name&amp;<TMPL_VAR NAME=filter_string>">Hypervisor</a></th>
 			</tr>
 			<TMPL_IF NAME=devices><TMPL_LOOP NAME=devices>
 			<TMPL_IF NAME="__odd__"><tr class="odd"><TMPL_ELSE><tr class="even"></TMPL_IF>
@@ -92,9 +92,9 @@
 				<td><TMPL_VAR ESCAPE=HTML NAME=role_name></td>
 				<td><TMPL_UNLESS NAME=hardware_meta_default_data><TMPL_UNLESS NAME=hardware_manufacturer_meta_default_data><TMPL_VAR ESCAPE=HTML NAME=hardware_manufacturer_name> </TMPL_UNLESS></TMPL_UNLESS><TMPL_VAR ESCAPE=HTML NAME=hardware_name></td>
 				<td><TMPL_VAR ESCAPE=HTML NAME=os_name><TMPL_IF NAME=os_version> <TMPL_VAR ESCAPE=HTML NAME=os_version></TMPL_IF></td>
-				<td><TMPL_VAR ESCAPE=HTML NAME=chefrole_name></td>
+				<td><TMPL_VAR ESCAPE=HTML NAME=datacenter_name></td>
 				<td><TMPL_VAR ESCAPE=HTML NAME=ip_address></td>
-				<td><TMPL_IF NAME=notes_short><span title="<TMPL_VAR NAME=notes>"><TMPL_VAR NAME=notes_short></span><TMPL_ELSE><TMPL_IF NAME=notes><TMPL_VAR NAME=notes><TMPL_ELSE>-</TMPL_IF></TMPL_IF></td>	
+				<td><TMPL_VAR ESCAPE=HTML NAME=hypervisor_name></td>
 			</tr>
 			</TMPL_LOOP></TMPL_IF>
 			<tr>

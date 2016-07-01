@@ -669,9 +669,11 @@ sub deviceList
 			service.name 				AS service_name,
 			domain.name					AS domain_name,
 			domain.meta_default_data	AS domain_meta_default_data,
-	                chefrole.name               AS chefrole_name,
-	                environment.name            AS environment_name
-		FROM device, rack, row, room, building, hardware, org hardware_manufacturer, role, os, org customer, service, domain, chefrole, environment
+            chefrole.name               AS chefrole_name,
+            environment.name            AS environment_name,
+            hypervisor.name             AS hypervisor_name,
+            datacenter.name             AS datacenter_name
+		FROM device, rack, row, room, building, hardware, org hardware_manufacturer, role, os, org customer, service, domain, chefrole, environment, hypervisor, datacenter
 		WHERE 
 			device.meta_default_data = 0 AND
 			device.rack = rack.id AND 
@@ -685,8 +687,10 @@ sub deviceList
 			device.customer = customer.id AND
 			device.domain = domain.id AND
 			device.service = service.id AND
-            		device.chefrole = chefrole.id AND
-	                device.environment = environment.id
+    		device.chefrole = chefrole.id AND
+            device.environment = environment.id AND
+            device.hypervisor = hypervisor.id AND
+            device.datacenter = datacenter.id
 			$filterBy
 			$deviceSearch
 		ORDER BY $orderBy
