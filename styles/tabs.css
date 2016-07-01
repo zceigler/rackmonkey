@@ -90,9 +90,12 @@
 }
 
 .search-bar > button {
-    background: #fff none repeat scroll 0 0;
-    border: 1px solid #dedede;
+    background: #e20c77 none repeat scroll 0 0;
+    border: 1px solid #e20c77;
+    color: #fff;
+    font-size: 12px;
     font-weight: bold;
+    margin-bottom: 1px;
 }
 
 .search-bar > button:hover {
