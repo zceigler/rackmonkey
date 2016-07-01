@@ -83,20 +83,35 @@
 					</div>
 					<div style="clear:both">
 						<div style="width: 50%; float:left">
-							<div class="key">Customer</div>
-							<div class="value"><TMPL_VAR ESCAPE=HTML NAME=customer_name><TMPL_UNLESS NAME=customer_meta_default_data> &nbsp; <a class="small" title="View details for this customer" href="<TMPL_VAR NAME=base_url>?view=org&amp;view_type=single&amp;id=<TMPL_VAR ESCAPE=URL NAME=customer>">Details&hellip;</a></TMPL_UNLESS></div>
-						</div>	
+							<div class="key">Chef Role</div>
+							<div class="value"><TMPL_VAR ESCAPE=HTML NAME=chefrole_name></div>
+						</div>
 						<div>
 							<div class="key">Service Level</div>
 							<div class="value"><TMPL_VAR ESCAPE=HTML NAME=service_name></div>
 						</div>
 					</div>
-										<div style="clear:both">
+					<TMPL_IF NAME=serial_no>
+					<hr />
+					<div style="clear:both">
 						<div style="width: 50%; float:left">
-							<div class="key">Chef Role</div>
-							<div class="value"><TMPL_VAR ESCAPE=HTML NAME=chefrole_name></div>
+							<div class="key">Serial Number</div>
+							<div class="value"><TMPL_IF NAME=serial_no><TMPL_VAR ESCAPE=HTML NAME=serial_no><TMPL_IF NAME=dell_query> &nbsp; <a class="small" href="<TMPL_VAR ESCAPE=HTML NAME=dell_query><TMPL_VAR ESCAPE=URL NAME=serial_no>">Query Dell&hellip;</a></TMPL_IF><TMPL_ELSE>&nbsp;-</TMPL_IF></div>
 						</div>
-					</div><TMPL_IF NAME=apps>
+						<div>
+							<div class="key">Asset Number</div>
+							<div class="value"><TMPL_IF NAME=asset_no><TMPL_VAR ESCAPE=HTML NAME=asset_no><TMPL_ELSE>&nbsp;-</TMPL_IF></div>
+						</div>
+					</div>
+					</TMPL_IF>
+					<TMPL_IF NAME=rack_pos>
+					<div style="clear:both">
+						<div>
+							<div class="key">Rack Location</div>
+							<div class="value"><TMPL_VAR ESCAPE=HTML NAME=rack_name><TMPL_UNLESS NAME=building_meta_default_data> [<TMPL_VAR ESCAPE=HTML NAME=rack_pos>] - <TMPL_VAR ESCAPE=HTML NAME=room_name> in <TMPL_VAR ESCAPE=HTML NAME=building_name> &nbsp; <a class="small" title="View device in rack" href="<TMPL_VAR NAME=base_url>?view=rack&amp;view_type=physical&amp;id=<TMPL_VAR ESCAPE=URL NAME=rack>&amp;device_id=<TMPL_VAR ESCAPE=URL NAME=id>">View in rack&hellip;</a><TMPL_ELSE>&nbsp; <a class="small" title="View unracked devices" href="<TMPL_VAR NAME=base_url>?view=device&amp;view_type=default_unracked"></a></TMPL_UNLESS></div>
+						</div>
+					</div></TMPL_IF>
+					<TMPL_IF NAME=apps>
 					<hr style="clear: both" />
 					<div>
 						<div class="key">Apps</div>
