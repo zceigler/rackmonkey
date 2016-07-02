@@ -50,7 +50,7 @@ table.itemtable td.item_delete
 
 table.itemtable tr.odd
 {
-	background: #CCC; 
+	background: #FFF; 
 }
 
 table.itemtable tr.even
@@ -73,8 +73,10 @@ table.itemtable tr th:first-child
 }
 
 
-table.itemtable  a
+table.itemtable a
 {
+	color: #e20c77;
+	font-weight: bold;
 	text-decoration: none;
 }
 

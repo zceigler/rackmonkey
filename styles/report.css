@@ -57,3 +57,9 @@ table.report td.item_name
 {
 	font-weight: bold;
 }
+
+
+#main a {
+    color: #e20c77;
+    font-weight: bold;
+}
