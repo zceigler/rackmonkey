@@ -37,6 +37,7 @@
 				<TMPL_IF NAME=rack2xls_url><button style="width: 85px; margin-right: 20px" title="Export the device table to an Excel spreadsheet" onclick="window.location = '<TMPL_VAR NAME=rack2xls_url>?view=device&amp;view_type=xls_export&amp;id=<TMPL_VAR ESCAPE=URL NAME=id>'; return false;">Export XLS</button></TMPL_IF>
 				<TMPL_IF NAME=rack2pdf_url><button title="Export the device table to a PDF document" onclick="window.location = '<TMPL_VAR NAME=rack2pdf_url>?view=device&amp;view_type=pdf_export&amp;id=<TMPL_VAR ESCAPE=URL NAME=id>'; return false;">Export PDF</button></TMPL_IF>
 				<button style="width: 85px; margin-right: 20px" onclick="window.location = '<TMPL_VAR NAME=base_url>?view=device&amp;view_type=create'; return false;">Add Device</button>
+				<button style="width: 85px; margin-right: 20px" onclick="window.location = '<TMPL_VAR NAME=base_url>../cgi-bin/logdump.pl'; return false;">Change Log</button>
 			</p>
 			<p style="clear: both; display: none" id="filters">
 				<label>Customer</label>
