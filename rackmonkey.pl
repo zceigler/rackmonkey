@@ -91,7 +91,7 @@ eval {
     }
     else # display a view
     {
-        unless ($view =~ /^(?:config|help|app|building|chefrole|datacenter|device|deviceApp|domain|environment|hardware|hypervisor|network|power|org|os|rack|report|role|room|row|service|system)$/)
+        unless ($view =~ /^(?:config|help|app|building|chefrole|datacenter|device|deviceApp|domain|environment|hardware|hypervisor|log|network|power|org|os|rack|report|role|room|row|service|system)$/)
         {
             die "RMERR: '$view' is not a valid view. Did you type the URL manually? Note that view names are singular, for example device NOT devices.";
         }

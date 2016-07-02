@@ -631,7 +631,7 @@ sub deviceList
         $filterBy .= " AND $f=" . $$filters{"$f"};
     }
 
-    $deviceSearch = "AND ( lower(device.name) LIKE '%$deviceSearch%' OR lower(role.name) LIKE '%$deviceSearch%' OR lower(environment.name) LIKE '%$deviceSearch%' )"
+    $deviceSearch = "AND ( lower(device.name) LIKE '%$deviceSearch%' OR lower(role.name) LIKE '%$deviceSearch%' OR lower(environment.name) LIKE '%$deviceSearch%' OR lower(ip_address) LIKE '%$deviceSearch%')"
       if ($deviceSearch);
     $orderBy = 'device.name' unless $self->_checkOrderBy($orderBy);
 
