@@ -235,7 +235,7 @@ eval {
                 my $selectedChefrole      = $cgi->lastCreatedId;
                 my $selectedEnvironment   = $cgi->lastCreatedId;
 
-                if (($viewType =~ /^edit/) || ($viewType =~ /^single/) || ($viewType =~ /^create/))
+                if (($viewType =~ /^edit/) || ($viewType =~ /^single/) || ($viewType =~ /^create/) || ($viewType =~ /^bulk/))
                 {
                     my $device = {};
 
@@ -288,7 +288,7 @@ eval {
 
                     $template->param($device);
                 }
-                if (($viewType =~ /^edit/) || ($viewType =~ /^create/))
+                if (($viewType =~ /^edit/) || ($viewType =~ /^create/) || ($viewType =~ /^bulk/))
                 {
                     $template->param('selected_manufacturer'   => $selectedManufacturer);
                     $template->param('selected_hardware_model' => $selectedHardwareModel);
@@ -298,7 +298,7 @@ eval {
                     $template->param('oslist'                  => $cgi->selectItem($backend->simpleList('os', 1), $selectedOs));
                     $template->param('rolelist'                => $cgi->selectItem($backend->simpleList('role', 1), $selectedRole));
                     $template->param('customerlist'            => $cgi->selectItem($backend->simpleList('customer', 1), $selectedCustomer));
-                    $template->param('servicelist'             => $cgi->selectItem($backend->simpleList('service', 1), $selectedService));
+                    $template->param('servicelist'             => $cgi->selectItem($backend->simpleList('service', 1)));
                     $template->param('racklist'                => $cgi->selectRack($backend->rackListBasic, $selectedRack));
                     $template->param('domainlist'              => $cgi->selectItem($backend->simpleList('domain', 1), $selectedDomain));
                     $template->param('rack_pos'                => $cgi->selectProperty('position'));

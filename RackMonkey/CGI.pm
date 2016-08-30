@@ -217,6 +217,12 @@ sub rackList
     return $self->cgi->param('rack_list');
 }
 
+sub deviceList
+{
+    my $self = shift;
+    return $self->cgi->param('device_list');
+}
+
 sub selectProperty    # should get all prefill vars going via this sub
 {
     my ($self, $property) = @_;
